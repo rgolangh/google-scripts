@@ -8,7 +8,16 @@ function mailFilter(query, onThread, onMessage, onEnd) {
   if (onEnd) {onEnd();}
 }
 
-function test() {
-  mailFilter("is:unread in:SomeLabel", null, function(m){Logger.log(m.getSubject())}) ;
+function markDone(thread) {
+  thread.moveToArchive();
+  thread.markRead();
 }
 
+function logMessage(message) {
+  Logger.log("%s - %s", message.getFrom(), message.getSubject())
+}
+
+// USAGE
+function test() {
+  mailFilter("is:unread newer_than:1d", null, logMessage, null)
+}
