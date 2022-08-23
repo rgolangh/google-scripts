@@ -2,18 +2,13 @@ const PARENT_LABEL = "Github Projects";
 
 // Extract all projects you inolved in from emails,
 // and create a filter and a label for it.
-// Run this function periodically.
-// The result will be filters organizing labels like so:
-// Inbox
-//   Github Projects
-//       organization/reponame
 function createGmailFiltersByGithubProjects() {
   const labels = GmailApp.getUserLabels();
   const onMessageAction = null;
   const onEndAction = null;
   // filter threads with notifications from github. to include mentions on ly add 'cc:mention@noreply.github.com'
-  const filter = "from:(notifications@github.com)";
-
+  const query = "from:(notifications@github.com)";
+  // cache for already handled listIds
   const listIdSet = new Set();
 
   const onThreadAction = (t) => {
@@ -24,6 +19,7 @@ function createGmailFiltersByGithubProjects() {
     console.log(`list id is ${listId}`);
     // create a label for the repo if not exist
     if (null == labels.find((l) => l.getName() == listId)) {
+      // check if this is already handled
       if (!listIdSet.has(listId)) {
         listIdSet.add(listId);
         createFilterForListId(listId,`${PARENT_LABEL}/${listId}`)
@@ -35,7 +31,7 @@ function createGmailFiltersByGithubProjects() {
     }
   };
   
-  mailFilter(filter, onThreadAction, onMessageAction, onEndAction);
+  mailFilter(query, onThreadAction, onMessageAction, onEndAction);
 }
 
 function parentProjectsLabel() {
