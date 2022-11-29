@@ -30,11 +30,11 @@ function reportThreadsBySender() {
   // const sheet = SpreadsheetApp.openById(id);
   // SpreadsheetApp.setActiveSpreadsheet(sheet);
   const sheet = SpreadsheetApp.getActiveSpreadsheet();
-  Logger.log("openned sheet %s", sheet.getName());
+  Logger.log("-> openned sheet %s", sheet.getName());
   
   var threadsBySender = getInboxThreadsBySender();
   
-  threadsBySender.forEach(function(v,k) {sheet.appendRow([k, v.length])});
+  threadsBySender.forEach(function(v,k) {sheet.appendRow([k, v])});
   addTopSendersChart(sheet, 7);
   
 }
@@ -63,17 +63,29 @@ function addTopSendersChart(spreadsheet, count) {
  */
 function getInboxThreadsBySender() {
   var threadsBySender = new Map();
-  
-  var threads = GmailApp.getInboxThreads();
-  Logger.log("got all inbox threads %s", threads.length);
-  for (var i = 0; i < threads.length; i++) {
-    var m = threads[i].getMessages()[0];
-    if (!threadsBySender.get(m.getFrom())) {
-      threadsBySender.set(m.getFrom(), [])
-    }
-    threadsBySender.get(m.getFrom()).push(threads[i]);
-  }
+  var max = 300;
+  var start = 0;
+  var limit = 100;
+  while (max > limit) {
+    var threads = GmailApp.search("in:inbox is:unread", start, limit);
+    Logger.log("got all inbox threads %s", threads.length);
+    var messages = GmailApp.getMessagesForThreads(threads);
+    Logger.log("got all inbox threads %s", messages.length);
 
+    //for (var i = 0; i < threads.length; i++) {
+      for (var i = 0; i < messages.length; i++) {
+      //let t = threads[i];
+      // let sender = t.getMessages()[0].getFrom();
+      let sender = messages[i][0].getFrom();
+      if (!threadsBySender.get(sender)) {
+        threadsBySender.set(sender, 0);
+      }
+      threadsBySender.set(sender, threadsBySender.get(sender) +1);
+    }
+    start += limit;
+    max -= limit;
+  }
+  Logger.log("return thread by sender map %s", threadsBySender.length);
   return threadsBySender;
 
 }
